@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
 ENV SOFT /soft
+ARG TEMPFOLDER="$SOFT/temp"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -30,50 +31,53 @@ RUN apt-get install -y libncurses5-dev \
 
 RUN apt-get autoclean && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir $TEMPFOLDER
+
 #htslib
-RUN wget -q https://github.com/samtools/htslib/releases/download/${HSTLIBSVER}/htslib-${HSTLIBSVER}.tar.bz2 && \
+RUN cd $TEMPFOLDER && \
+    wget -q https://github.com/samtools/htslib/releases/download/${HSTLIBSVER}/htslib-${HSTLIBSVER}.tar.bz2 && \
     tar -xjf htslib-${HSTLIBSVER}.tar.bz2 && \
-    rm htslib-${HSTLIBSVER}.tar.bz2 && \
-    cd htslib-${HSTLIBSVER} && \
-    ./configure && \
-    make && \
-    make install
+    rm htslib-${HSTLIBSVER}.tar.bz2
 
 #libdeflate
-RUN wget https://github.com/ebiggers/libdeflate/archive/v${LIBDEFLATEVER}/${LIBDEFLATEVER}.tar.gz && \
+RUN cd $TEMPFOLDER && \
+  wget https://github.com/ebiggers/libdeflate/archive/v${LIBDEFLATEVER}/${LIBDEFLATEVER}.tar.gz && \
   tar -xzf ${LIBDEFLATEVER}.tar.gz && \
-  rm -v ${LIBDEFLATEVER}.tar.gz && \
+  rm ${LIBDEFLATEVER}.tar.gz && \
   cd libdeflate-${LIBDEFLATEVER} && \
-  mkdir build && \
-  cmake -B build && cmake --build build && \
-  cd build && \
-  make && \
-  make install
+  cmake -B . && cmake --build .
 
 #samtools
-RUN wget https://github.com/samtools/samtools/releases/download/${SAMTOOLSVER}/samtools-${SAMTOOLSVER}.tar.bz2 && \
+RUN cd $TEMPFOLDER && \
+ wget https://github.com/samtools/samtools/releases/download/${SAMTOOLSVER}/samtools-${SAMTOOLSVER}.tar.bz2 && \
  tar -xjf samtools-${SAMTOOLSVER}.tar.bz2 && \
  rm samtools-${SAMTOOLSVER}.tar.bz2 && \
  cd samtools-${SAMTOOLSVER} && \
- ./configure --with-libdeflate=${SOFT}/libdeflate-${LIBDEFLATEVER}/build --with-htslib=${SOFT}/htslib-${HSTLIBSVER} && \
+ ./configure --prefix=${SOFT}/samtools-${SAMTOOLSVER} --with-libdeflate=${TEMPFOLDER}/libdeflate-${LIBDEFLATEVER} --with-htslib=${TEMPFOLDER}/htslib-${HSTLIBSVER} && \
  make && \
  make install
+ENV PATH = "$PATH:${SOFT}/samtools-${SAMTOOLSVER}/bin"
 
 #vcftools
-RUN wget https://github.com/vcftools/vcftools/releases/download/v${VCFTOOLSVER}/vcftools-${VCFTOOLSVER}.tar.gz && \
+RUN cd $TEMPFOLDER && \
+  wget https://github.com/vcftools/vcftools/releases/download/v${VCFTOOLSVER}/vcftools-${VCFTOOLSVER}.tar.gz && \
   tar -xzf vcftools-${VCFTOOLSVER}.tar.gz && \
   rm vcftools-${VCFTOOLSVER}.tar.gz && \
   cd vcftools-${VCFTOOLSVER} && \
-  ./configure && \
+  ./configure --prefix=${SOFT}/vcftools-${VCFTOOLSVER} && \
   make && \
   make install
+ENV PATH = "$PATH:${SOFT}/vcftools-${VCFTOOLSVER}/bin"
 
 #bcftools
-RUN wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLSVER}/bcftools-${BCFTOOLSVER}.tar.bz2 && \
+RUN cd $TEMPFOLDER && \
+  wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLSVER}/bcftools-${BCFTOOLSVER}.tar.bz2 && \
   tar -xjf bcftools-${BCFTOOLSVER}.tar.bz2 && \
   rm -v bcftools-${BCFTOOLSVER}.tar.bz2 && \
   cd bcftools-${BCFTOOLSVER} && \
+  ./configure --prefix=${SOFT}/bcftools-${BCFTOOLSVER} && \
   make && \
   make install
+ENV PATH = "$PATH:${SOFT}/bcftools-${BCFTOOLSVER}/bin"
 
-RUN rm -rf *
+RUN rm -rf $TEMPFOLDER
