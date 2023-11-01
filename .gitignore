@@ -1,3 +1,6 @@
 .idea
 .git
 .DS_Store
+task_3/*.ipynb
+task_3/*.fa
+task_3/*.fai
