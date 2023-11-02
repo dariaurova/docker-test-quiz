@@ -27,7 +27,7 @@ fastafile = pysam.FastaFile(args.reference)
 
 data['REF'] = np.zeros(len(data))
 for i in range(len(data)):
-    data['REF'][i] = fastafile.fetch(data['CHROM'][i], data['POS'][i], data['POS'][i] +1)
+    data['REF'][i] = fastafile.fetch(data['CHROM'][i], data['POS'][i]-1, data['POS'][i])
     
     
 data['ALT'] = np.zeros(len(data))
