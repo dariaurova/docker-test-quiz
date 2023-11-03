@@ -34,7 +34,7 @@ def main():
     data = data.drop('GB37_position', axis=1)
     data['chromosome'] = data['chromosome'].astype(str)
     data['rs#'] = data['rs#'].astype(str)
-    data['CHROM'] =  'chr'+data['chromosome']
+    data['#CHROM'] =  'chr'+data['chromosome']
     data = data.drop('chromosome', axis=1)
     data['ID'] =  'rs'+data['rs#']
     data = data.drop('rs#', axis=1)
@@ -44,7 +44,7 @@ def main():
     logging.info("Execution of the algorithm...")
     data['REF'] = np.zeros(len(data))
     for i in range(len(data)):
-        data['REF'][i] = fastafile.fetch(data['CHROM'][i], data['POS'][i]-1, data['POS'][i])
+        data['REF'][i] = fastafile.fetch(data['#CHROM'][i], data['POS'][i]-1, data['POS'][i])
         
         
     data['ALT'] = np.zeros(len(data))
@@ -59,10 +59,13 @@ def main():
             data['ALT'][i] = ', '.join((data['allele1'][i], data['allele2'][i]))
 
     data = data.drop(['allele1', 'allele2'], axis=1)
-    data = data.reindex(columns=['CHROM', 'POS', 'ID', 'REF', 'ALT'])
+    data = data.reindex(columns=['#CHROM', 'POS', 'ID', 'REF', 'ALT'])
+    header = '##fileformat=VCF\n' + '##fileDate=20231102\n' + \
+        '##reference=https://gdc.cancer.gov/about-data/gdc-data-processing/gdc-reference-files\n'
+
     logging.info("Сreating an output file...")
     with open(args.output + '/FP_SNPs_10k_GB38_twoAllelsFormat.tsv', 'w') as f:
-        f.write(data.to_csv())
+        f.write(header+data.to_csv(index=False))
     
 
 if __name__ == "__main__":
