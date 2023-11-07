@@ -65,7 +65,7 @@ def main():
 
     logging.info("Сreating an output file...")
     with open(args.output + '/FP_SNPs_10k_GB38_twoAllelsFormat.tsv', 'w') as f:
-        f.write(header+data.to_csv(index=False))
+        f.write(header+data.to_csv(index=False, sep="\t"))
     
 
 if __name__ == "__main__":
